@@ -1,13 +1,31 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
+//import App from './App';
 import reportWebVitals from './reportWebVitals';
-
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import TableViewMyOrders from './MyOrders/TableViewMyOrders';
+import Layout from './MainView/Layout';
+import AddEditOrderView from './Add-Edit-Order/AddEditOrderView';
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
+export default function App(){
+  return(
+    <BrowserRouter>
+      <Routes>
+        <Route>
+          <Route path="/" element={<Layout />} />
+          <Route path="/my-orders" element={<TableViewMyOrders />} />
+          <Route path="/add-order/:id" element={<AddEditOrderView />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
 root.render(
   <React.StrictMode>
-    <App />
+    <App/>                              
   </React.StrictMode>
 );
 
