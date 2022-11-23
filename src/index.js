@@ -14,8 +14,7 @@ export default function App(){
     <BrowserRouter>
       <Routes>
         <Route>
-          <Route path="/" element={<Layout />} />
-          <Route path="/my-orders" element={<TableViewMyOrders />} />
+          <Route path="/" element={<TableViewMyOrders />} />
           <Route path="/add-order/:id" element={<AddEditOrderView />} />
         </Route>
       </Routes>

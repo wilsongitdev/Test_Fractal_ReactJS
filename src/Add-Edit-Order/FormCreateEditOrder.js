@@ -55,7 +55,6 @@ export default function FormCreateEditOrder(){
     };
 
 
-
     React.useEffect(()=>{
         console.log(window.location.pathname);
         // CARGAR API PARA OBTENER INFORMACIÓN DE ORDEN
