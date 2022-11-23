@@ -13,7 +13,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-
+// import { useForm, Controller } from "react-hook-form";
 
 
 export default function FormCreateEditOrder(){
@@ -28,30 +28,39 @@ export default function FormCreateEditOrder(){
         boxShadow: 24,
         p: 4,
       };
-
+      
     function padTo2Digits(num) {
         return num.toString().padStart(2, '0');
       }
       
     function formatDate(date) {
-        console.log(padTo2Digits(date.getDate()))
     return [
         date.getFullYear(),
         padTo2Digits(date.getMonth() + 1),
         padTo2Digits(date.getDate())
     ].join('-') + "T00:00:00";
     }
-    console.log(formatDate((new Date())))
+
     // dayjs('2014-08-18T21:11:54')
-    const [value, setValue] = React.useState(formatDate(new Date()));
+    const [value] = React.useState(formatDate(new Date()));
     const [open, setOpen] = React.useState(false);
     const handleClose = () => setOpen(false);
     const handleOpen = () => setOpen(true);
+    const [nameproduct, setnameproduct] = React.useState(0)
 
 
-    const handleChange = (newValue) => {
-        setValue(newValue);
+    const handleSelectChange = (newValue) => {
+
+        setnameproduct(newValue.target.value);
     };
+
+
+
+    React.useEffect(()=>{
+        console.log(window.location.pathname);
+        // CARGAR API PARA OBTENER INFORMACIÓN DE ORDEN
+    },[])
+
 
     return (
         <section>
@@ -61,7 +70,11 @@ export default function FormCreateEditOrder(){
                 Order #
             </Grid>
             <Grid item xs={8}>
-            
+            {/* <Controller
+                name="firstName"
+                control={control}
+                render={({ field }) => <Input {...field} />}
+            /> */}
             <TextField
                 id="standard-basic"
                 variant="standard"
@@ -84,7 +97,6 @@ export default function FormCreateEditOrder(){
                     disabled
                     inputFormat="MM/DD/YYYY"
                     value={value}
-                    onChange={handleChange}
                     renderInput={(params) => <TextField {...params} />}
                     />
                 </LocalizationProvider>
@@ -98,6 +110,8 @@ export default function FormCreateEditOrder(){
                     variant="standard"
                     label="# Products"
                     type="number"
+                    disabled
+                    value={0}
                     InputLabelProps={{
                         shrink: true,
                     }}
@@ -113,6 +127,8 @@ export default function FormCreateEditOrder(){
                     variant="standard"
                     label="Final Price"
                     type="number"
+                    disabled
+                    value={1}
                     InputLabelProps={{
                         shrink: true,
                     }}
@@ -132,7 +148,7 @@ export default function FormCreateEditOrder(){
                 >
                 <Box sx={style}>
                     <Typography id="modal-modal-title" variant="h6" component="h2">
-                    Text in a modal
+                    Agregar Producto
                     </Typography>
                     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
                     <Grid container spacing={2}>
@@ -143,9 +159,9 @@ export default function FormCreateEditOrder(){
                             <Select
                                 labelId="demo-simple-select-label"
                                 id="demo-simple-select"
-                                value={0}
+                                value={nameproduct}
                                 label="Age"
-                                onChange={handleChange}
+                                onChange={handleSelectChange}
                             >
                                 <MenuItem value={0}>Bread</MenuItem>
                                 <MenuItem value={1}>Apple</MenuItem>
@@ -175,7 +191,7 @@ export default function FormCreateEditOrder(){
                     </Typography>
                     
                 </Box>
-                </Modal>
+            </Modal>
         </section>
         
       );

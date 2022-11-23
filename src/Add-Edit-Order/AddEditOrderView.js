@@ -14,6 +14,11 @@ export default function AddEditOrderView() {
                     <FormCreateEditOrder/>
                 </Container>
             </div>
+            <div className="padded tablecolor">
+                <Container maxWidth="md" style={{"text-align": "center"}}>
+                    
+                </Container>
+            </div>
         </section>
     );
 }
