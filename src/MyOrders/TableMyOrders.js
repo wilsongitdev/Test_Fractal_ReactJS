@@ -1,4 +1,4 @@
-import * as React from 'react';
+import {useState, useEffect} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -12,7 +12,10 @@ import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import DeleteIcon from '@mui/icons-material/Delete';
-
+import { url } from '../constants/url';
+import Grid from '@mui/material/Grid';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 
   
 function TableMyOrders(){
@@ -28,34 +31,71 @@ function TableMyOrders(){
         p: 4,
       };
     
-    function createData(id, number_order, date, products, finalprice) {
-        return { id, number_order, date, products, finalprice };
-    }
+
     const date = new Date();
     const string_date = date.getDate() + "/" + date.getMonth()+ "/"+ date.getFullYear();
-    const [open, setOpen] = React.useState(false);
-    const [rows, setrows] = React.useState([
-        createData(0, 159, string_date, 24, 40.0),
-        createData(1, 237, string_date, 37, 40.3),
-        createData(2, 262, string_date, 24, 60.0),
-        createData(3, 305, string_date, 67, 44.3),
-        createData(4, 356, string_date, 49, 82.9),
-    ])
-    const [roworder, setroworder] = React.useState(null);
+    const [open, setOpen] = useState(false);
+    const [open2, setOpen2] = useState(false);
+    const [listOrders, setListOrders] = useState([]);
+    const [roworder, setroworder] = useState(null);
+    const [orderstate, setorderstate] = useState(-1);
+    const [orderSelected, setorderSelected] = useState({});
+    const listStatus = ["Pending", "InProgress", "Completed"];
 
     const handleOpenandsend = (roworder) => {
         setOpen(true);
-        setroworder(roworder);
-        console.log(roworder);
+        setorderSelected(roworder);
+
     };
-    const handleClose = () => setOpen(false);
+    const handleOpenandEditState = (roworder) => {
+        setOpen2(true);
+        setorderSelected(roworder);
+        setorderstate(roworder.stateOrder);
+
+    }
+
+    const handleSelectChange = (e) =>{
+        setorderstate(e.target.value);
+    }
+
+    const handleClose = () => {
+        setOpen(false);
+        setorderSelected({});
+        setorderstate(-1)
+    };
 
     const deleteorder = (id) => {
 
-        setrows(rows.filter((item) => item.id !== id))
+        fetch(`${url}/order/delete/${id}`,{
+                method:"DELETE"
+        });
         handleClose();
 
     }
+    const confirmEditStatus = () => {
+
+        let dataSend = orderSelected;
+        dataSend.orderState = orderstate;
+        dataSend.products = []
+        console.log(dataSend);
+        fetch(`${url}/order/update`,{
+            method:"PUT", 
+            headers:{'Content-Type': 'application/json'},
+            body: JSON.stringify(dataSend)
+        }).then(res => {
+            console.log(res);
+            setOpen2(false);
+        });
+    }
+    useEffect(()=>{
+
+            fetch(`${url}/order/all`).then(res=>res.json()).then(result => {
+                result.sort(function(a, b){return a.idOrderD - b.idOrderD});
+                setListOrders(result)
+            });
+
+        
+    },[])
     return(
         <section>
             <TableContainer component={Paper}>
@@ -67,27 +107,28 @@ function TableMyOrders(){
                         <TableCell align="center">date</TableCell>
                         <TableCell align="center">#Products</TableCell>
                         <TableCell align="center">Final price</TableCell>
+                        <TableCell align="center">Order Status</TableCell>
                         <TableCell align="center">Options</TableCell>
                     </TableRow>
                     </TableHead>
                     <TableBody>
-                        {rows.map((row) => (
+                        {listOrders.map((row) => (
                             <TableRow
-                            key={row.name}
+                            key={row.idOrderD}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                             >
-                            <TableCell component="th" scope="row">
-                                {row.id}
-                            </TableCell>
-                            <TableCell align="right">{row.number_order}</TableCell>
-                            <TableCell align="right">{row.date}</TableCell>
-                            <TableCell align="right">{row.products}</TableCell>
-                            <TableCell align="right">{row.finalprice}</TableCell>
+                            <TableCell align="right">{row.idOrderD}</TableCell>
+                            <TableCell align="right">{row.numOrderD}</TableCell>
+                            <TableCell align="right">{row.dateD}</TableCell>
+                            <TableCell align="right">{row.numProductsD}</TableCell>
+                            <TableCell align="right">{row.finalPriceD}</TableCell>
+                            <TableCell align="right">{listStatus[row.orderState]}</TableCell>
                             <TableCell align="right">
 
-                                    <Link to={`/add-order/${row.id}`}><Button variant="contained">Edit</Button></Link>
+                                    <Link to={`/add-order/${row.idOrderD}`}><Button variant="contained">Edit</Button></Link>
 
                                     <Button variant="contained" color="error" onClick={()=>handleOpenandsend(row)}>delete</Button>
+                                    <Button variant="contained" color="secondary" onClick={()=>handleOpenandEditState(row)}>EditState</Button>
                                 
                             </TableCell>
 
@@ -110,14 +151,61 @@ function TableMyOrders(){
                     Delete Order
                     </Typography>
                     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-                    Do you want to delete the order n° {roworder?.id}?
+                    Do you want to delete the order n° {orderSelected?.idOrderD}?
                     </Typography>
                     <Typography>
-                    <Button variant="contained" startIcon={<DeleteIcon />} color="error" onClick={() => deleteorder(roworder.id)}>Quitar orden</Button>
+                    <Button variant="contained" startIcon={<DeleteIcon />} color="error" onClick={() => deleteorder(orderSelected.idOrderD)}>Quitar orden</Button>
                     </Typography>
                     
                 </Box>
                 </Modal>
+
+                <Modal
+                open={open2}
+                onClose={() => setOpen2(false)}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+                >
+                <Box sx={style}>
+                    <Typography id="modal-modal-title" variant="h6" component="h2">
+                    Edit State
+                    </Typography>
+                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={4}>
+                            Order Status
+                        </Grid>
+                        <Grid item xs={8}>
+                            <Select
+                                labelId="demo-simple-select-label"
+                                id="demo-simple-select"
+                                value={orderstate}
+                                label="Status"
+                                onChange={(e)=>handleSelectChange(e)}
+                                fullWidth
+                            >
+                                <MenuItem value={-1}></MenuItem>
+                                {listStatus.map((item, key)=>
+                                <MenuItem value={key}>{item}</MenuItem>
+                                )}
+                                
+                            </Select>
+                        </Grid>
+                        
+                    </Grid>
+
+                    </Typography>
+                    <Typography>
+                    <Button variant="contained" 
+                        color="success" 
+                        fullWidth 
+                        style={{"margin-top": "10px"}}
+                        onClick={confirmEditStatus}>Confirm and Save
+                    </Button>
+                    </Typography>
+                    
+                </Box>
+            </Modal>
         </section>
         
         

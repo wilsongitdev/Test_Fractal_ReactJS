@@ -1,4 +1,4 @@
-import * as React from 'react';
+import {useState, useEffect} from 'react';
 import dayjs from 'dayjs';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
@@ -13,10 +13,11 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import { url } from '../constants/url';
 // import { useForm, Controller } from "react-hook-form";
 
 
-export default function FormCreateEditOrder(){
+export default function FormCreateOrder(){
     const style = {
         position: 'absolute',
         top: '50%',
@@ -42,22 +43,103 @@ export default function FormCreateEditOrder(){
     }
 
     // dayjs('2014-08-18T21:11:54')
-    const [value] = React.useState(formatDate(new Date()));
-    const [open, setOpen] = React.useState(false);
+    const [dateString] = useState(formatDate(new Date()));
+    const [open, setOpen] = useState(false);
+
     const handleClose = () => setOpen(false);
-    const handleOpen = () => setOpen(true);
-    const [nameproduct, setnameproduct] = React.useState(0)
+    const [productSelected, setProductSelected] = useState({});
+    const [quantity, setquantity] = useState(0);
+    const [listProduct, setlistProduct] = useState([]);
+    const [orderNumber, setorderNumber] = useState(0);
 
-
-    const handleSelectChange = (newValue) => {
-
-        setnameproduct(newValue.target.value);
+    const handleOpen = () => {
+        setOpen(true);
+        setquantity(0);
+        setProductSelected({});
     };
 
+    const handleSelectChange = (e) => {
 
-    React.useEffect(()=>{
-        console.log(window.location.pathname);
+        fetch(`${url}/product/${e.target.value}`).then(res => res.json()).then((result) => {
+            setProductSelected(result)
+        })
+
+        
+        
+    };
+
+    const handleChangeQuantity = (e) =>{
+        setquantity(e.target.value);
+    };
+    // let productadd = orderSelected.products;
+    // productadd.push()
+    const btnConfirmAndSave = () => {
+        
+
+        if (productSelected !== {}){
+
+
+            const dataOrderAdd = {
+                numOrderD: orderNumber,
+                dateD: dateString,
+                numProductsD: 1,
+                finalPriceD: productSelected.unitPriceD * quantity,
+                products: [{
+                    productId : productSelected.idProductD,
+                    stateOrder: "Pending",
+                    quantityBuy: quantity,
+                    totalBuy: productSelected.unitPriceD * quantity
+                }]
+            };
+            const productQuantityAvailableRemain = listProduct.filter((product) => 
+            product.idProductD == productSelected.idProductD)[0].quantityD - quantity;
+            
+            if (productQuantityAvailableRemain >= 0){
+                
+                const dataProductUpdate = {
+                    idProductD: productSelected.idProductD,
+                    nameD: productSelected.nameD,
+                    unitPriceD: productSelected.unitPriceD,
+                    quantityD: productQuantityAvailableRemain
+                }
+    
+                Promise.all([
+                    fetch(`${url}/order/add`,{
+                        method:"POST", 
+                        headers:{'Content-Type': 'application/json'},
+                        body: JSON.stringify(dataOrderAdd)
+                    }).then(res => res.json()),
+                    fetch(`${url}/product/update`,{
+                        method:"PUT", 
+                        headers:{'Content-Type': 'application/json'},
+                        body: JSON.stringify(dataProductUpdate)
+                    }).then(res => res.json())
+                ])
+                .then(([res1, res2]) => {
+                    setOpen(false);
+                })
+            }
+            else{
+                alert("No hay productos");
+            }
+
+            
+            
+        }
+        
+    };
+
+    useEffect(()=>{
         // CARGAR API PARA OBTENER INFORMACIÓN DE ORDEN
+        Promise.all([
+            fetch(`${url}/product/all`).then(res => res.json())
+    ]).then(([res1]) =>{
+        setlistProduct(res1)
+    })
+        /**
+         * .then(res=> res.json()).then(result=>{
+            setorderSelected(result)})
+         */
     },[])
 
 
@@ -83,6 +165,7 @@ export default function FormCreateEditOrder(){
                     shrink: true,
                 }}
                 inputProps={{ min: '0' }}
+                onChange= {(e) => setorderNumber(e.target.value)}
                 />
                 
             </Grid>
@@ -95,7 +178,6 @@ export default function FormCreateEditOrder(){
                     label="Current Date"
                     disabled
                     inputFormat="MM/DD/YYYY"
-                    value={value}
                     renderInput={(params) => <TextField {...params} />}
                     />
                 </LocalizationProvider>
@@ -110,7 +192,6 @@ export default function FormCreateEditOrder(){
                     label="# Products"
                     type="number"
                     disabled
-                    value={0}
                     InputLabelProps={{
                         shrink: true,
                     }}
@@ -127,7 +208,6 @@ export default function FormCreateEditOrder(){
                     label="Final Price"
                     type="number"
                     disabled
-                    value={1}
                     InputLabelProps={{
                         shrink: true,
                     }}
@@ -158,13 +238,15 @@ export default function FormCreateEditOrder(){
                             <Select
                                 labelId="demo-simple-select-label"
                                 id="demo-simple-select"
-                                value={nameproduct}
+                                value={productSelected.idProductD}
                                 label="Age"
-                                onChange={handleSelectChange}
+                                onChange={(e)=>handleSelectChange(e)}
+                                fullWidth
                             >
-                                <MenuItem value={0}>Bread</MenuItem>
-                                <MenuItem value={1}>Apple</MenuItem>
-                                <MenuItem value={2}>Banana</MenuItem>
+                                {listProduct.map((item,key)=>
+                                <MenuItem value={item.idProductD}>{item.nameD}</MenuItem>
+                                )}
+                                
                             </Select>
                         </Grid>
                         <Grid item xs={4}>
@@ -180,13 +262,20 @@ export default function FormCreateEditOrder(){
                                     shrink: true,
                                 }}
                                 inputProps={{ min: '0' }}
+                                value={quantity}
+                                onChange={(e) => handleChangeQuantity(e)}
                             />
                         </Grid>
                     </Grid>
 
                     </Typography>
                     <Typography>
-                    <Button variant="contained" color="success" fullWidth style={{"margin-top": "10px"}} onClick={handleClose}>Confirm and Save</Button>
+                    <Button variant="contained" 
+                        color="success" 
+                        fullWidth 
+                        style={{"margin-top": "10px"}}
+                        onClick={btnConfirmAndSave}>Confirm and Save
+                    </Button>
                     </Typography>
                     
                 </Box>

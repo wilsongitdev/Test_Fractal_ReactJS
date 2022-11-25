@@ -5,7 +5,6 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import TableViewMyOrders from './MyOrders/TableViewMyOrders';
-import Layout from './MainView/Layout';
 import AddEditOrderView from './Add-Edit-Order/AddEditOrderView';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 

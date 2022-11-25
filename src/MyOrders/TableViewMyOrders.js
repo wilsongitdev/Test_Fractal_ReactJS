@@ -4,12 +4,12 @@ export default function TableViewMyOrders() {
     return (
         <section>
             <div className="padded titlebgcolor">
-                <Container maxWidth="sm" style={{"text-align": "center"}}>
+                <Container maxWidth="sm" style={{"textAlign": "center"}}>
                     <h1>My Orders</h1>
                 </Container>
             </div>
             <div className="padded tablecolor">
-                <Container maxWidth="md" style={{"text-align": "center"}}>
+                <Container maxWidth="md" style={{"textAlign": "center"}}>
                     <TableMyOrders/>
                 </Container>
             </div>
