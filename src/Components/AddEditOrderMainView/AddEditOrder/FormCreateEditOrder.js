@@ -1,8 +1,5 @@
-import {useState, useEffect} from 'react';
-import dayjs from 'dayjs';
-import Paper from '@mui/material/Paper';
+import {useState} from 'react';
 import Grid from '@mui/material/Grid';
-import { styled } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -13,11 +10,10 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import { url } from '../constants/url';
-// import { useForm, Controller } from "react-hook-form";
 
 
-export default function FormCreateOrder(){
+
+export default function FormCreateEditOrder(props){
     const style = {
         position: 'absolute',
         top: '50%',
@@ -29,28 +25,10 @@ export default function FormCreateOrder(){
         boxShadow: 24,
         p: 4,
       };
-      
-    function padTo2Digits(num) {
-        return num.toString().padStart(2, '0');
-      }
-      
-    function formatDate(date) {
-    return [
-        date.getFullYear(),
-        padTo2Digits(date.getMonth() + 1),
-        padTo2Digits(date.getDate())
-    ].join('-') + "T00:00:00";
-    }
 
-    // dayjs('2014-08-18T21:11:54')
-    const [dateString] = useState(formatDate(new Date()));
     const [open, setOpen] = useState(false);
-
-    const handleClose = () => setOpen(false);
     const [productSelected, setProductSelected] = useState({});
     const [quantity, setquantity] = useState(0);
-    const [listProduct, setlistProduct] = useState([]);
-    const [orderNumber, setorderNumber] = useState(0);
 
     const handleOpen = () => {
         setOpen(true);
@@ -60,87 +38,50 @@ export default function FormCreateOrder(){
 
     const handleSelectChange = (e) => {
 
-        fetch(`${url}/product/${e.target.value}`).then(res => res.json()).then((result) => {
-            setProductSelected(result)
+        props.listAllProduct.forEach((item) => {
+            if (item.idProductD === e.target.value) {
+                
+                productSelected.idProductD = e.target.value;
+                productSelected.unitPriceD = item.unitPriceD;
+                setProductSelected(productSelected);
+            }
         })
 
-        
-        
     };
+
 
     const handleChangeQuantity = (e) =>{
         setquantity(e.target.value);
     };
-    // let productadd = orderSelected.products;
-    // productadd.push()
+
     const btnConfirmAndSave = () => {
         
 
-        if (productSelected !== {}){
-
-
-            const dataOrderAdd = {
-                numOrderD: orderNumber,
-                dateD: dateString,
-                numProductsD: 1,
-                finalPriceD: productSelected.unitPriceD * quantity,
-                products: [{
-                    productId : productSelected.idProductD,
-                    stateOrder: "Pending",
-                    quantityBuy: quantity,
-                    totalBuy: productSelected.unitPriceD * quantity
-                }]
+        if (productSelected !=={} && quantity > 0){
+            
+            props.setnumProduct(props.numProductsD +1);
+            const objprodadded = {
+                productId: productSelected.idProductD,
+                quantityBuy: Number(quantity),
+                totalBuy: productSelected.unitPriceD * Number(quantity) 
             };
-            const productQuantityAvailableRemain = listProduct.filter((product) => 
-            product.idProductD == productSelected.idProductD)[0].quantityD - quantity;
             
-            if (productQuantityAvailableRemain >= 0){
-                
-                const dataProductUpdate = {
-                    idProductD: productSelected.idProductD,
-                    nameD: productSelected.nameD,
-                    unitPriceD: productSelected.unitPriceD,
-                    quantityD: productQuantityAvailableRemain
-                }
-    
-                Promise.all([
-                    fetch(`${url}/order/add`,{
-                        method:"POST", 
-                        headers:{'Content-Type': 'application/json'},
-                        body: JSON.stringify(dataOrderAdd)
-                    }).then(res => res.json()),
-                    fetch(`${url}/product/update`,{
-                        method:"PUT", 
-                        headers:{'Content-Type': 'application/json'},
-                        body: JSON.stringify(dataProductUpdate)
-                    }).then(res => res.json())
-                ])
-                .then(([res1, res2]) => {
-                    setOpen(false);
+            props.products.push(objprodadded);
+            props.listAllProduct.forEach((item) => {
+                let isinarray = false
+                props.products.forEach((item2) =>{   
+                    if (item.idProductD === item2.productId) isinarray = true;
                 })
-            }
-            else{
-                alert("No hay productos");
-            }
+                //if (!isinarray) auxList.push(item) 
+                if (!isinarray) item.wasSelected = false;
+                else item.wasSelected = true;
+            })
+            props.setlistAllProducts(props.listAllProduct);
+            setOpen(false);
 
-            
-            
         }
         
     };
-
-    useEffect(()=>{
-        // CARGAR API PARA OBTENER INFORMACIÓN DE ORDEN
-        Promise.all([
-            fetch(`${url}/product/all`).then(res => res.json())
-    ]).then(([res1]) =>{
-        setlistProduct(res1)
-    })
-        /**
-         * .then(res=> res.json()).then(result=>{
-            setorderSelected(result)})
-         */
-    },[])
 
 
     return (
@@ -151,11 +92,7 @@ export default function FormCreateOrder(){
                 Order #
             </Grid>
             <Grid item xs={8}>
-            {/* <Controller
-                name="firstName"
-                control={control}
-                render={({ field }) => <Input {...field} />}
-            /> */}
+
             <TextField
                 id="standard-basic"
                 variant="standard"
@@ -165,7 +102,8 @@ export default function FormCreateOrder(){
                     shrink: true,
                 }}
                 inputProps={{ min: '0' }}
-                onChange= {(e) => setorderNumber(e.target.value)}
+                onChange= {(e) => props.setorderNumber(e.target.value)}
+                value= {props.numOrderD}
                 />
                 
             </Grid>
@@ -179,6 +117,7 @@ export default function FormCreateOrder(){
                     disabled
                     inputFormat="MM/DD/YYYY"
                     renderInput={(params) => <TextField {...params} />}
+                    value={props.dateD}
                     />
                 </LocalizationProvider>
             </Grid>
@@ -191,11 +130,12 @@ export default function FormCreateOrder(){
                     variant="standard"
                     label="# Products"
                     type="number"
-                    disabled
                     InputLabelProps={{
                         shrink: true,
                     }}
                     inputProps={{ min: '0' }}
+                    disabled
+                    value= {props.numProductsD}
                 />
             </Grid>
             <Grid item xs={4}>
@@ -212,7 +152,8 @@ export default function FormCreateOrder(){
                         shrink: true,
                     }}
                     inputProps={{ min: '0' }}
-                    />
+                    value = {props.finalPriceD}
+                />
             </Grid>
             <Grid item xs={12}>
                 <Button variant="contained" size="large" onClick={handleOpen}>Add new Product</Button>
@@ -221,7 +162,7 @@ export default function FormCreateOrder(){
         </Box>
             <Modal
                 open={open}
-                onClose={handleClose}
+                onClose={() => setOpen(false)}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
                 >
@@ -243,8 +184,11 @@ export default function FormCreateOrder(){
                                 onChange={(e)=>handleSelectChange(e)}
                                 fullWidth
                             >
-                                {listProduct.map((item,key)=>
-                                <MenuItem value={item.idProductD}>{item.nameD}</MenuItem>
+                                {props?.listAllProduct?.map((item,key)=>{
+                                    if (!item.wasSelected){
+                                        return <MenuItem value={item.idProductD}>{item.nameD}</MenuItem>;
+                                    }
+                                }
                                 )}
                                 
                             </Select>

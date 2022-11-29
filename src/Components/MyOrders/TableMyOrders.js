@@ -7,12 +7,12 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
-import { Outlet, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { url } from '../constants/url';
+import { url } from '../../constants/url';
 import Grid from '@mui/material/Grid';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -30,14 +30,11 @@ function TableMyOrders(){
         boxShadow: 24,
         p: 4,
       };
-    
 
-    const date = new Date();
-    const string_date = date.getDate() + "/" + date.getMonth()+ "/"+ date.getFullYear();
     const [open, setOpen] = useState(false);
     const [open2, setOpen2] = useState(false);
     const [listOrders, setListOrders] = useState([]);
-    const [roworder, setroworder] = useState(null);
+
     const [orderstate, setorderstate] = useState(-1);
     const [orderSelected, setorderSelected] = useState({});
     const listStatus = ["Pending", "InProgress", "Completed"];
@@ -60,7 +57,6 @@ function TableMyOrders(){
 
     const handleClose = () => {
         setOpen(false);
-        setorderSelected({});
         setorderstate(-1)
     };
 
@@ -68,8 +64,10 @@ function TableMyOrders(){
 
         fetch(`${url}/order/delete/${id}`,{
                 method:"DELETE"
+        }).then(res => {
+            handleClose();
         });
-        handleClose();
+        
 
     }
     const confirmEditStatus = () => {
@@ -77,13 +75,12 @@ function TableMyOrders(){
         let dataSend = orderSelected;
         dataSend.orderState = orderstate;
         dataSend.products = []
-        console.log(dataSend);
+
         fetch(`${url}/order/update`,{
             method:"PUT", 
             headers:{'Content-Type': 'application/json'},
             body: JSON.stringify(dataSend)
         }).then(res => {
-            console.log(res);
             setOpen2(false);
         });
     }
@@ -125,10 +122,12 @@ function TableMyOrders(){
                             <TableCell align="right">{listStatus[row.orderState]}</TableCell>
                             <TableCell align="right">
 
-                                    <Link to={`/add-order/${row.idOrderD}`}><Button variant="contained">Edit</Button></Link>
+                                    <Link to={listStatus[row.orderState] !== "Completed"?`/add-order/${row.idOrderD}`:"/"}>
+                                        <Button variant="contained" onClick={listStatus[row.orderState] !== "Completed"?null:() => alert("It is not possible to edit completed orders")}>Edit</Button>
+                                    </Link>
 
                                     <Button variant="contained" color="error" onClick={()=>handleOpenandsend(row)}>delete</Button>
-                                    <Button variant="contained" color="secondary" onClick={()=>handleOpenandEditState(row)}>EditState</Button>
+                                    <Button variant="contained" color="secondary" onClick={()=>handleOpenandEditState(row)}>EditStatus</Button>
                                 
                             </TableCell>
 
@@ -136,7 +135,7 @@ function TableMyOrders(){
                         ))}
                     </TableBody>
                 </Table>
-                <Link to={`/add-order/:id`}><Button variant="outlined">Add Order</Button></Link>
+                <Link to={`/add-order/:id`}><Button variant="contained">Add Order</Button></Link>
                 
             </TableContainer>
 
@@ -154,7 +153,11 @@ function TableMyOrders(){
                     Do you want to delete the order n° {orderSelected?.idOrderD}?
                     </Typography>
                     <Typography>
-                    <Button variant="contained" startIcon={<DeleteIcon />} color="error" onClick={() => deleteorder(orderSelected.idOrderD)}>Quitar orden</Button>
+                        <Button variant="contained" startIcon={<DeleteIcon />} 
+                            color="error" 
+                            onClick={() => deleteorder(orderSelected.idOrderD)}>
+                            Delete Order
+                        </Button>
                     </Typography>
                     
                 </Box>

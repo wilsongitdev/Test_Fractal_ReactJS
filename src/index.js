@@ -4,8 +4,12 @@ import './index.css';
 //import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import TableViewMyOrders from './MyOrders/TableViewMyOrders';
-import AddEditOrderView from './Add-Edit-Order/AddEditOrderView';
+import TableViewMyOrders from './Components/MyOrders/TableViewMyOrders';
+import AddEditOrderMainView from './Components/AddEditOrderMainView/AddEditOrderMainView';
+import TableViewMyProducts from './Components/Products/TableViewMyProducts';
+
+
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 export default function App(){
@@ -13,8 +17,11 @@ export default function App(){
     <BrowserRouter>
       <Routes>
         <Route>
+
           <Route path="/" element={<TableViewMyOrders />} />
-          <Route path="/add-order/:id" element={<AddEditOrderView />} />
+          <Route path="/add-order/:id" element={<AddEditOrderMainView/>} />
+          <Route path="/products" element={<TableViewMyProducts/>} />
+
         </Route>
       </Routes>
     </BrowserRouter>

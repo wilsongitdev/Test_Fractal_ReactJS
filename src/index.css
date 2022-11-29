@@ -29,8 +29,8 @@ h3{
   text-transform: uppercase;
 }
 .padded{
-  padding-top: 30px;
-  padding-bottom: 30px;
+  padding-top: 50px;
+  padding-bottom: 50px;
 }
 .titlebgcolor{
   background-color: aquamarine;
@@ -38,5 +38,8 @@ h3{
 }
 .tablecolor{
   background-color: azure;
+}
+.titlebgcoloravprod{
+  background-color: blanchedalmond;
 }
 
