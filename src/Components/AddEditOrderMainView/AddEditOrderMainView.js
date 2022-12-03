@@ -84,6 +84,8 @@ export default function AddEditOrderMainView() {
             products: propsApiOrder.products
         };
         console.log(dataOrderAddEdit)
+
+        
         
         // task: add api to update product table Qty and Total Price	
         if (idPath === ":id"){ // Add
@@ -91,9 +93,22 @@ export default function AddEditOrderMainView() {
                 method:"POST", 
                 headers:{'Content-Type': 'application/json'},
                 body: JSON.stringify(dataOrderAddEdit)
-            }).then(res => {
-
             })
+            propsApiOrder.products.forEach((item) => {
+                const dataProductUpdate = {
+                    idProductD: item.productId,
+                    nameD: item.name,
+                    unitPriceD: item.unitPriceD,
+                    quantityD: item.quantityD - item.quantityBuy,
+                };
+                fetch(`${url}/product/update`,{
+                    method:"PUT", 
+                    headers:{'Content-Type': 'application/json'},
+                    body: JSON.stringify(dataProductUpdate)
+                }).then(res => res.json()).then(result => console.log("The order was added successfully"))
+            })
+        
+            
         }
         
         else { // Edit
@@ -103,7 +118,7 @@ export default function AddEditOrderMainView() {
                 headers:{'Content-Type': 'application/json'},
                 body: JSON.stringify(dataOrderAddEdit)
             }).then(res => res.json()).then((result) => {
-
+                console.log("The order was edited successfully")
             })
         }
 

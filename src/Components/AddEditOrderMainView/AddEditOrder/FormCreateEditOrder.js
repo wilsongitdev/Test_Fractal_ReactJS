@@ -39,10 +39,13 @@ export default function FormCreateEditOrder(props){
     const handleSelectChange = (e) => {
 
         props.listAllProduct.forEach((item) => {
+
             if (item.idProductD === e.target.value) {
                 
                 productSelected.idProductD = e.target.value;
                 productSelected.unitPriceD = item.unitPriceD;
+                productSelected.nameD = item.nameD;
+                productSelected.quantityD = item.quantityD;
                 setProductSelected(productSelected);
             }
         })
@@ -63,7 +66,10 @@ export default function FormCreateEditOrder(props){
             const objprodadded = {
                 productId: productSelected.idProductD,
                 quantityBuy: Number(quantity),
-                totalBuy: productSelected.unitPriceD * Number(quantity) 
+                totalBuy: productSelected.unitPriceD * Number(quantity),
+                name: productSelected.nameD,
+                unitPriceD: productSelected.unitPriceD,
+                quantityD: productSelected.quantityD
             };
             
             props.products.push(objprodadded);
@@ -188,6 +194,7 @@ export default function FormCreateEditOrder(props){
                                     if (!item.wasSelected){
                                         return <MenuItem value={item.idProductD}>{item.nameD}</MenuItem>;
                                     }
+                                    return null;
                                 }
                                 )}
                                 
